@@ -144,6 +144,3 @@ WHERE n1.padron < n2.padron;
 
 
 
-
-
-
