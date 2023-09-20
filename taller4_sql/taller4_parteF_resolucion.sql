@@ -105,3 +105,8 @@ FROM
 		FROM notas
 		GROUP BY padron) AS cantidad_notas
 
+
+--Opcion 3: calculo las cantidades de una en el select y que se divida ahi nomas
+
+SELECT CAST(COUNT(notas)AS float)/COUNT(DISTINCT padron)
+FROM notas
