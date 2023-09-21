@@ -61,8 +61,15 @@ SELECT COUNT(*) as cant_alumnos, SUM(cantidad_creditos) as total_creds, AVG(COAL
 FROM alumnos
 
 
+-- 6) Obtenga un listado de los alumnos, ordenados en forma descendente por la institucion de la que egresaron.
+-- Utilizar la opcion NULLS FIRST/LAST para cambiar el orden.
+SELECT nombre, nombre_inst_sec
+FROM alumnos
+ORDER BY nombre_inst_sec DESC NULLS LAST
 
--- 6) Utilizando NOT EXISTS, devuelva con una consulta las instituciones secundarias
+
+
+-- 7) Utilizando NOT EXISTS, devuelva con una consulta las instituciones secundarias
 -- de las cuales no egreso ningun alumno. Resuelva lo mismo pero utilizando NOT IN en vez de NOT EXISTS
 
 --NOT EXISTS
@@ -82,16 +89,50 @@ WHERE nombre NOT IN(SELECT nombre_inst_sec
 				 FROM alumnos)
 
 
-
--- 7) Haga una consulta que devuelva para cada institucion secundanria 
+--Version con NOT IN que si funciona
+SELECT nombre
+FROM inst_sec 
+WHERE nombre NOT IN(SELECT nombre_inst_sec
+				 	FROM alumnos
+				 	WHERE nombre_inst_sec IS NOT NULL)
+				 
+				 
+				 
+-- 8) Haga una consulta que devuelva para cada institucion secundanria 
 -- la cantidad de alumnos que egresaron de ella. Revise que CNBA tenga el valor correcto.
--- Modifique la consulta para que cuente ´unicamente alumnos con padron mayor a 40000
+-- Modifique la consulta para que cuente unicamente alumnos con padron mayor a 40000
 
 --No me da el valor correcto, me devuelve que 1 alumno egresó de CNBA, tendria que ser 0
 SELECT ins.nombre, COUNT(*)
 FROM inst_sec ins LEFT OUTER JOIN alumnos al ON(ins.nombre = al.nombre_inst_sec)
 GROUP BY ins.nombre
 
+-- Si en el COUNT que puse en el select, pongo una columna de la tabla de ALUMNOS, que
+-- tiene las columnas con valores nulos, asi el count los ignora.
+SELECT ins.nombre, COUNT(al.padron)
+FROM inst_sec ins LEFT OUTER JOIN alumnos al ON(ins.nombre = al.nombre_inst_sec)
+GROUP BY ins.nombre
 
 
+--Modifico la consulta para que solo cuente los padrones >40000
 
+-- Aca se me va CNBA porque como es un left outer y CNBA no tiene alumnos
+-- entonces el apdron queda null y comparo "null >40000" y me da falso y se omite la fila
+SELECT ins.nombre, COUNT(al.padron)
+FROM inst_sec ins LEFT OUTER JOIN alumnos al ON(ins.nombre = al.nombre_inst_sec)
+WHERE al.padron >40000
+GROUP BY ins.nombre
+
+
+-- Formas Correctas:
+--Opcion 1: pongo la restriccion en la condicion del join
+SELECT ins.nombre, COUNT(al.padron)
+FROM inst_sec ins LEFT OUTER JOIN alumnos al ON(ins.nombre = al.nombre_inst_sec AND padron>40000)
+GROUP BY ins.nombre
+
+
+--Opcion 2: me fijo que si es null el padron, que no me omita la fila
+SELECT ins.nombre, COUNT(al.padron)
+FROM inst_sec ins LEFT OUTER JOIN alumnos al ON(ins.nombre = al.nombre_inst_sec)
+WHERE al.padron >40000 OR al.padron IS NULL
+GROUP BY ins.nombre
